@@ -34,8 +34,8 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	id := uuid.New().String()
 	createReq := database.CreateUserParams{
 		ID:        id,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 		Name:      req.Name,
 	}
 	user, err := cfg.DB.CreateUser(r.Context(), createReq)
