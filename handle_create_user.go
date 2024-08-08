@@ -31,23 +31,19 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type CreateReq struct {
-		ID        int32  `json:"id"`
-		CreatedAt string `json:"created_at"`
-		UpdatedAt string `json:"updated_at"`
-		Name      string `json:"name"`
-	}
-
 	id := uuid.New().String()
-
 	createReq := database.CreateUserParams{
 		ID:        id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Name:      trimmedName,
+		Name:      req.Name,
 	}
-
 	user, err := cfg.DB.CreateUser(r.Context(), createReq)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	respondWithJSON(w, http.StatusCreated, user)
 }

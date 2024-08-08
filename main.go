@@ -33,7 +33,7 @@ func main() {
 		DB: dbQueries,
 	}
 
-	mux.HandleFunc("POST /v1/users", cfg.handleCreateUser)
+	mux.HandleFunc("POST /api/v1/users", cfg.handleCreateUser)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
