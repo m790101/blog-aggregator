@@ -1,21 +1,39 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/m790101/blog-aggregator/internal/database"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	godotenv.Load()
 
 	port := os.Getenv("PORT")
+	dbURL := os.Getenv("DBURL")
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /v1/healthz", handleHealthz)
-	mux.HandleFunc("GET /v1/err", handleErr)
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("error opening database: %v", err)
+	}
+
+	dbQueries := database.New(db)
+
+	cfg := &apiConfig{
+		DB: dbQueries,
+	}
+
+	mux.HandleFunc("POST /v1/users", cfg.handleCreateUser)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
@@ -25,16 +43,4 @@ func main() {
 	log.Printf("Server is running on port %s", port)
 	log.Fatal(srv.ListenAndServe())
 
-}
-
-func handleHealthz(w http.ResponseWriter, r *http.Request) {
-	type responseHealthz struct {
-		Status string `json:"status"`
-	}
-
-	respondWithJSON(w, http.StatusOK, responseHealthz{Status: "ok"})
-}
-
-func handleErr(w http.ResponseWriter, r *http.Request) {
-	respondWithError(w, http.StatusInternalServerError, "error message")
 }
