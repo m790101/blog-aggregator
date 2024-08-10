@@ -12,7 +12,8 @@ import (
 )
 
 type apiConfig struct {
-	DB *database.Queries
+	DB     *database.Queries
+	Secret string
 }
 
 func main() {
@@ -20,6 +21,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	dbURL := os.Getenv("DBURL")
+	secret := os.Getenv("SECRET")
 	mux := http.NewServeMux()
 
 	db, err := sql.Open("postgres", dbURL)
@@ -30,10 +32,12 @@ func main() {
 	dbQueries := database.New(db)
 
 	cfg := &apiConfig{
-		DB: dbQueries,
+		DB:     dbQueries,
+		Secret: secret,
 	}
 
 	mux.HandleFunc("POST /api/v1/users", cfg.handleCreateUser)
+	mux.HandleFunc("GET /api/v1/users", cfg.handleGetUser)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

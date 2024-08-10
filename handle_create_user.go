@@ -32,11 +32,17 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uuid.New().String()
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	createReq := database.CreateUserParams{
 		ID:        id,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
-		Name:      req.Name,
+		Name:      trimmedName,
 	}
 	user, err := cfg.DB.CreateUser(r.Context(), createReq)
 
