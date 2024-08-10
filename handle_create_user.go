@@ -31,7 +31,7 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := uuid.New().String()
+	id := uuid.New()
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
