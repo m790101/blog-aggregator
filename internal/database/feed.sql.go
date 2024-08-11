@@ -15,7 +15,7 @@ import (
 const createFeed = `-- name: CreateFeed :one
 INSERT INTO feeds (id ,name, url, created_at, updated_at, user_id)
 VALUES ($1,$2,$3,$4,$5,$6)
-RETURNING id, name, url, created_at, updated_at, user_id
+RETURNING id, name, url, created_at, updated_at, user_id, last_fetch_at
 `
 
 type CreateFeedParams struct {
@@ -44,12 +44,13 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.UserID,
+		&i.LastFetchAt,
 	)
 	return i, err
 }
 
 const getFeed = `-- name: GetFeed :one
-SELECT id, name, url, created_at, updated_at, user_id FROM feeds
+SELECT id, name, url, created_at, updated_at, user_id, last_fetch_at FROM feeds
 `
 
 func (q *Queries) GetFeed(ctx context.Context) (Feed, error) {
@@ -62,6 +63,51 @@ func (q *Queries) GetFeed(ctx context.Context) (Feed, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.UserID,
+		&i.LastFetchAt,
+	)
+	return i, err
+}
+
+const getNextFeedToFetch = `-- name: GetNextFeedToFetch :one
+SELECT id, name, url, created_at, updated_at, user_id, last_fetch_at FROM feeds
+ORDER BY last_fetch_at ASC NULLS FIRST
+LIMIT 1
+`
+
+func (q *Queries) GetNextFeedToFetch(ctx context.Context) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, getNextFeedToFetch)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Url,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.LastFetchAt,
+	)
+	return i, err
+}
+
+const markFeedFetch = `-- name: MarkFeedFetch :one
+UPDATE feeds
+SET last_fetch_at = NOW(),
+updated_at = NOW()
+WHERE id = $1
+RETURNING id, name, url, created_at, updated_at, user_id, last_fetch_at
+`
+
+func (q *Queries) MarkFeedFetch(ctx context.Context, id uuid.UUID) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, markFeedFetch, id)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Url,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.LastFetchAt,
 	)
 	return i, err
 }
