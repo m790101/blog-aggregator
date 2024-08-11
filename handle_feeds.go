@@ -19,6 +19,7 @@ func (cfg *apiConfig) handleCreateFeeds(w http.ResponseWriter, r *http.Request, 
 	err := decoder.Decode(&req)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	id := uuid.New()
@@ -36,7 +37,17 @@ func (cfg *apiConfig) handleCreateFeeds(w http.ResponseWriter, r *http.Request, 
 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
 	}
+	idFollow := uuid.New()
+
+	cfg.DB.AddFeedFollow(r.Context(), database.AddFeedFollowParams{
+		ID:        idFollow,
+		CreatedAt: res.CreatedAt,
+		UpdatedAt: res.UpdatedAt,
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+	})
 
 	respondWithJSON(w, http.StatusCreated, feed)
 }
