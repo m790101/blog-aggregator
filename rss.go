@@ -22,13 +22,12 @@ type RssFeed struct {
 }
 
 type XmlItem struct {
-	XMLName     xml.Name `xml:"item"`
-	Text        string   `xml:"text"`
-	Title       string   `xml:"title"`
-	Link        string   `xml:"link"`
-	PubDate     string   `xml:"pubDate"`
-	Guid        string   `xml:"guid"`
-	Description string   `xml:"description"`
+	Text        string `xml:"text"`
+	Title       string `xml:"title"`
+	Link        string `xml:"link"`
+	PubDate     string `xml:"pubDate"`
+	Guid        string `xml:"guid"`
+	Description string `xml:"description"`
 }
 
 func urlToFeed(url string) (RssFeed, error) {
@@ -42,7 +41,8 @@ func urlToFeed(url string) (RssFeed, error) {
 		log.Fatalf("error creating request: %v", err)
 		return RssFeed{}, err
 	}
-	res, err := Client.Do(req)
+	res, _ := Client.Do(req)
+
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Fatalf("error reading response body: %v", err)

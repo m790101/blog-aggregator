@@ -6,7 +6,7 @@ RETURNING *;
 
 
 
--- name: GetFeed :one
+-- name: GetFeed :many
 SELECT * FROM feeds;
 
 

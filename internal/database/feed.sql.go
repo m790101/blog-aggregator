@@ -52,23 +52,39 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 	return i, err
 }
 
-const getFeed = `-- name: GetFeed :one
+const getFeed = `-- name: GetFeed :many
 SELECT id, name, url, created_at, updated_at, user_id, last_fetch_at FROM feeds
 `
 
-func (q *Queries) GetFeed(ctx context.Context) (Feed, error) {
-	row := q.db.QueryRowContext(ctx, getFeed)
-	var i Feed
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Url,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.UserID,
-		&i.LastFetchAt,
-	)
-	return i, err
+func (q *Queries) GetFeed(ctx context.Context) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, getFeed)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Feed
+	for rows.Next() {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Url,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserID,
+			&i.LastFetchAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getNextFeedToFetch = `-- name: GetNextFeedToFetch :many
