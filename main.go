@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -35,6 +36,7 @@ func main() {
 		DB:     dbQueries,
 		Secret: secret,
 	}
+	go startScrapping(dbQueries, 5, time.Minute)
 
 	mux.HandleFunc("POST /api/v1/users", cfg.handleCreateUser)
 	mux.HandleFunc("GET /api/v1/users", cfg.middlewareAuth(cfg.handleGetUser))
